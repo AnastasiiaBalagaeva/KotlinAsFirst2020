@@ -3,6 +3,7 @@
 package lesson2.task1
 
 import lesson1.task1.discriminant
+import lesson1.task1.sqr
 import kotlin.math.max
 import kotlin.math.sqrt
 
@@ -69,12 +70,14 @@ fun minBiRoot(a: Double, b: Double, c: Double): Double {
  * вернуть строку вида: «21 год», «32 года», «12 лет».
  */
 fun ageDescription(age: Int): String {
-    val lastDigit = age % 10
+    //Берём только решающую часть возраста, так как сотни не влияют, И запоминаем последнюю цифру
+    val decisivePartOfAge = age % 100
+    val ageLastNumber = age % 10
     return when {
-        age % 100 in 11..15 -> "$age лет"
-        lastDigit == 1 -> "$age год"
-        lastDigit in 2..4 -> "$age года"
-        else -> "$age лет"
+        //От попадания в возраст от 10 до 20 защищают дополнительные условия
+        ageLastNumber == 1 && decisivePartOfAge != 11 -> "$age год"
+        ageLastNumber in 5..9 || ageLastNumber == 0 || (decisivePartOfAge in 10..20) -> "$age лет"
+        else -> "$age года"
     }
 }
 
@@ -89,7 +92,25 @@ fun timeForHalfWay(
     t1: Double, v1: Double,
     t2: Double, v2: Double,
     t3: Double, v3: Double
-): Double = TODO()
+): Double {
+    val s1 = t1 * v1
+    val s2 = t2 * v2
+    val s3 = t3 * v3
+    val wholeWay: Double = s1 + s2 + s3
+    val halfWay: Double = wholeWay / 2
+    when {
+        //Если мы двигались двигались первую половину пути с одной скоростью, то это v1, и решение простое
+        s1 >= s2 + s3 -> return halfWay / v1
+        //Если к половине пути мы двигались с двумя скоростями
+        //то мы вычисляем нужную нам часть от t2, деля путь, пройденный с начала v2 до середины пути, на саму v2
+        s1 + s2 >= s3 -> return t1 + (halfWay - s1) / v2
+
+        //Если к середине пути мы двигаемся уже с третьей скоростью,
+        //то мы так же берем от t3 только нужную нам часть до середины
+        else -> return t1 + t2 + (halfWay - s1 - s2) / v3
+    }
+
+}
 
 /**
  * Простая (2 балла)
@@ -104,7 +125,19 @@ fun whichRookThreatens(
     kingX: Int, kingY: Int,
     rookX1: Int, rookY1: Int,
     rookX2: Int, rookY2: Int
-): Int = TODO()
+): Int {
+    //Проверяем угрозу от каждой ладьи и запоминаем в переменную
+    val underThreatOf1 = kingX == rookX1 || kingY == rookY1
+    val underThreatOf2 = kingX == rookX2 || kingY == rookY2
+    return when {
+        //Оцениваем угрозы и выдаём ответ
+        underThreatOf1 && underThreatOf2 -> 3
+        underThreatOf2 -> 2
+        underThreatOf1 -> 1
+        else -> 0
+    }
+}
+
 
 /**
  * Простая (2 балла)
@@ -120,7 +153,25 @@ fun rookOrBishopThreatens(
     kingX: Int, kingY: Int,
     rookX: Int, rookY: Int,
     bishopX: Int, bishopY: Int
-): Int = TODO()
+): Int {
+    val underThreatOfRook = kingX == rookX || kingY == rookY
+    //Угрозу по диагонали проверяем сравнивая суммы координат слона и короля
+    val underThreatOfBishop = when {
+        kingX + kingY == bishopX + bishopY -> true
+        else -> {
+            //Отражаем координаты доски по оси Y, чтобы проверить по второй диагонали таким же способом
+            val invertedSumOfKing = kingX + (11 - kingY)
+            val invertedSumOfBishop = bishopX + (11 - bishopY)
+            invertedSumOfBishop == invertedSumOfKing
+        }
+    }
+    return when {
+        underThreatOfBishop && underThreatOfRook -> 3
+        underThreatOfBishop && !underThreatOfRook -> 2
+        !underThreatOfBishop && underThreatOfRook -> 1
+        else -> 0
+    }
+}
 
 /**
  * Простая (2 балла)
@@ -155,12 +206,10 @@ fun triangleKind(a: Double, b: Double, c: Double): Int {
  * Найти длину пересечения отрезков AB и CD.
  * Если пересечения нет, вернуть -1.
  */
-fun segmentLength(a: Int, b: Int, c: Int, d: Int): Int {
-    return when {
-        (d in a..b) && (c <= a) -> d - a
-        (d in a..b) && (c >= a) -> d - c
-        (c in a..b) && (d >= b) -> b - c
-        (a in c..b) && (b in a..d) -> b - a
-        else -> -1
-    }
+fun segmentLength(a: Int, b: Int, c: Int, d: Int): Int = when {
+    a >= c && b >= d -> if (a <= d) d - a else -1
+    a >= c && b <= d -> b - a
+    a <= c && b >= d -> d - c
+    a <= c && b <= d -> if (b >= c) b - c else -1
+    else -> -1
 }

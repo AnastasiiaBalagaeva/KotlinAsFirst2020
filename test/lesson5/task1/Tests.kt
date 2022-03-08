@@ -116,6 +116,12 @@ class Tests {
             buildGrades(mapOf("Марат" to 3, "Семён" to 3, "Михаил" to 3))
                 .mapValues { (_, v) -> v.sorted() }
         )
+        assertEquals(
+            mapOf(0 to listOf("")),
+            buildGrades(mapOf("" to 0))
+                .mapValues { (_, v) -> v.sorted() }
+        )
+
     }
 
     @Test
@@ -208,6 +214,10 @@ class Tests {
         assertEquals(
             mapOf("MSFT" to 150.0, "NFLX" to 45.0),
             averageStockPrice(listOf("MSFT" to 100.0, "MSFT" to 200.0, "NFLX" to 40.0, "NFLX" to 50.0))
+        )
+        assertEquals(
+            mapOf("" to 0.3333333333333333),
+            averageStockPrice(listOf("" to 0.0, "" to 1.0, "" to 0.0))
         )
     }
 
@@ -313,6 +323,10 @@ class Tests {
             findSumOfTwo(listOf(1, 2, 3), 4)
         )
         assertEquals(
+            Pair(0, 2),
+            findSumOfTwo(listOf(3, 2, 1), 4)
+        )
+        assertEquals(
             Pair(-1, -1),
             findSumOfTwo(listOf(1, 2, 3), 6)
         )
@@ -333,6 +347,34 @@ class Tests {
             bagPacking(
                 mapOf("Кубок" to (500 to 2000), "Слиток" to (1000 to 5000)),
                 450
+            )
+        )
+        assertEquals(
+            setOf("Чашка", "Кубок", "Тарелка"),
+            bagPacking(
+                mapOf("Слиток" to (1000 to 5000),"Чашка" to (50 to 50), "Тарелка" to (500 to 3100), "Кубок" to (500 to 2000)),
+                1050
+            )
+        )
+        assertEquals(
+            setOf("1", "0"),
+            bagPacking(
+                mapOf("0" to (1 to 1), "1" to (1 to 1)),
+                2
+            )
+        )
+        assertEquals(
+            setOf("1"),
+            bagPacking(
+                mapOf("0" to (2 to 1), "1" to (1 to 2)),
+                2
+            )
+        )
+        assertEquals(
+            setOf("1"),
+            bagPacking(
+                mapOf("0" to (1 to 149), "1" to (2 to 191)),
+                2
             )
         )
     }

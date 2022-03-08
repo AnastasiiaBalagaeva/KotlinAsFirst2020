@@ -2,8 +2,8 @@
 
 package lesson7.task1
 
+import ru.spbstu.wheels.stack
 import java.io.File
-import java.lang.NullPointerException
 
 // Урок 7: работа с файлами
 // Урок интегральный, поэтому его задачи имеют сильно увеличенную стоимость
@@ -64,7 +64,16 @@ fun alignFile(inputName: String, lineLength: Int, outputName: String) {
  * Подчёркивание в середине и/или в конце строк значения не имеет.
  */
 fun deleteMarked(inputName: String, outputName: String) {
-    TODO()
+    File(outputName).bufferedWriter().use {
+        File(inputName).readLines().forEachIndexed { index, string ->
+            if (string.isNotEmpty()) {
+                if (string[0] != '_')
+                    it.write(string + '\n')
+            } else {
+                it.write(string + '\n')
+            }
+        }
+    }
 }
 
 /**
@@ -76,7 +85,27 @@ fun deleteMarked(inputName: String, outputName: String) {
  * Регистр букв игнорировать, то есть буквы е и Е считать одинаковыми.
  *
  */
-fun countSubstrings(inputName: String, substrings: List<String>): Map<String, Int> = TODO()
+fun countSubstrings(inputName: String, substrings: List<String>): Map<String, Int> {
+    val resultMap = mutableMapOf<String, Int>()
+    for (s in substrings) resultMap[s] = 0
+    val inputStream = File(inputName).readText().toList().map { it.lowercaseChar() }
+    val streamLength = inputStream.size
+
+    for (substring in substrings) {
+        if (resultMap[substring] != 0) continue
+        val str = substring.lowercase()
+        val substringSize = str.length
+        val substringFirstSymbol = str.first()
+        inputStream.forEachIndexed { i, char ->
+            if (char == substringFirstSymbol && i + substringSize <= streamLength) {
+                var fullWordFound = inputStream.subList(i, i + substringSize).joinToString("") == str
+                if (fullWordFound || char.toString() == str) resultMap[substring] = resultMap[substring]!! + 1
+            }
+        }
+    }
+    return resultMap.toMap()
+}
+
 
 /**
  * Средняя (12 баллов)
@@ -196,7 +225,7 @@ fun top20Words(inputName: String): Map<String, Int> = TODO()
  * Пример 2.
  *
  * Входной текст: Здравствуй, мир!
- * Словарь: mapOf('з' to "zz", 'р' to "r", 'д' to "d", 'й' to "y", 'М' to "m", 'и' to "YY", '!' to "!!!")
+ * Словарь: mapOf('з' to "zZ", 'р' to "r", 'д' to "d", 'й' to "y", 'М' to "m", 'и' to "YY", '!' to "!!!")
  *
  * заменяется на
  *
@@ -234,7 +263,6 @@ fun transliterate(inputName: String, dictionary: Map<Char, String>, outputName: 
     outputStream.write(result.toString())
     outputStream.close()
 }
-
 
 /**
  * Средняя (12 баллов)
@@ -330,9 +358,45 @@ Suspendisse <s>et elit in enim tempus iaculis</s>.
  *
  * (Отступы и переносы строк в примере добавлены для наглядности, при решении задачи их реализовывать не обязательно)
  */
+
 fun markdownToHtmlSimple(inputName: String, outputName: String) {
-    TODO()
+    /*Про reluctant (lazy) quantifier "*?" прочитано тут:
+    https://stackoverflow.com/questions/3075130/what-is-the-difference-between-and-regular-expressions*/
+
+    val writer = File(outputName).bufferedWriter()
+    writer.write("<html><body><p>")
+    var text = File(inputName).readText()
+
+    text = Regex("""\*\*([\s\S]+?)\*\*""").replace(text) { m: MatchResult ->
+        "<b>" + m.groupValues[1] + "</b>"
+    }
+    text = Regex("""\*([\s\S]+?)\*""").replace(text) { m: MatchResult ->
+        "<i>" + m.groupValues[1] + "</i>"
+    }
+    text = Regex("""~~([\s\S]+?)~~""").replace(text) { m: MatchResult ->
+        "<s>" + m.groupValues[1] + "</s>"
+    }
+
+    var counter = 0
+    val lines = text.split("\n").toMutableList()
+    for (x in lines.indices) {
+        val line = lines[x]
+        if (line.trim().isEmpty()) {
+            if (counter > 0) {
+                if (x + 1 < lines.size && lines[x + 1].trim().isNotEmpty()) {
+                    lines[x] = "</p><p>"
+                    counter = 0
+                }
+            }
+        } else {
+            counter++
+        }
+    }
+    writer.write(lines.joinToString(""))
+    writer.write("</p></body></html>")
+    writer.close()
 }
+
 
 /**
  * Сложная (23 балла)
@@ -389,44 +453,44 @@ fun markdownToHtmlSimple(inputName: String, outputName: String) {
  * Соответствующий выходной файл:
 ///////////////////////////////начало файла/////////////////////////////////////////////////////////////////////////////
 <html>
-<body>
-<p>
-<ul>
-<li>
-Утка по-пекински
-<ul>
-<li>Утка</li>
-<li>Соус</li>
-</ul>
-</li>
-<li>
-Салат Оливье
-<ol>
-<li>Мясо
-<ul>
-<li>Или колбаса</li>
-</ul>
-</li>
-<li>Майонез</li>
-<li>Картофель</li>
-<li>Что-то там ещё</li>
-</ol>
-</li>
-<li>Помидоры</li>
-<li>Фрукты
-<ol>
-<li>Бананы</li>
-<li>Яблоки
-<ol>
-<li>Красные</li>
-<li>Зелёные</li>
-</ol>
-</li>
-</ol>
-</li>
-</ul>
-</p>
-</body>
+  <body>
+    <p>
+      <ul>
+        <li>
+          Утка по-пекински
+          <ul>
+            <li>Утка</li>
+            <li>Соус</li>
+          </ul>
+        </li>
+        <li>
+          Салат Оливье
+          <ol>
+            <li>Мясо
+              <ul>
+                <li>Или колбаса</li>
+              </ul>
+            </li>
+            <li>Майонез</li>
+            <li>Картофель</li>
+            <li>Что-то там ещё</li>
+          </ol>
+        </li>
+        <li>Помидоры</li>
+        <li>Фрукты
+          <ol>
+            <li>Бананы</li>
+            <li>Яблоки
+              <ol>
+                <li>Красные</li>
+                <li>Зелёные</li>
+              </ol>
+            </li>
+          </ol>
+        </li>
+      </ul>
+    </p>
+  </body>
 </html>
 ///////////////////////////////конец файла//////////////////////////////////////////////////////////////////////////////
  * (Отступы и переносы строк в примере добавлены для наглядности, при решении задачи их реализовывать не обязательно)
@@ -453,23 +517,23 @@ fun markdownToHtml(inputName: String, outputName: String) {
  * Вывести в выходной файл процесс умножения столбиком числа lhv (> 0) на число rhv (> 0).
  *
  * Пример (для lhv == 19935, rhv == 111):
-19935
- *    111
+   19935
+*    111
 --------
-19935
+   19935
 + 19935
 +19935
 --------
-2212785
+ 2212785
  * Используемые пробелы, отступы и дефисы должны в точности соответствовать примеру.
  * Нули в множителе обрабатывать так же, как и остальные цифры:
-235
- *  10
+  235
+*  10
 -----
-0
+    0
 +235
 -----
-2350
+ 2350
  *
  */
 fun printMultiplicationProcess(lhv: Int, rhv: Int, outputName: String) {
@@ -483,16 +547,16 @@ fun printMultiplicationProcess(lhv: Int, rhv: Int, outputName: String) {
  * Вывести в выходной файл процесс деления столбиком числа lhv (> 0) на число rhv (> 0).
  *
  * Пример (для lhv == 19935, rhv == 22):
-19935 | 22
--198     906
-----
-13
--0
---
-135
--132
-----
-3
+  19935 | 22
+ -198     906
+ ----
+    13
+    -0
+    --
+    135
+   -132
+   ----
+      3
 
  * Используемые пробелы, отступы и дефисы должны в точности соответствовать примеру.
  *

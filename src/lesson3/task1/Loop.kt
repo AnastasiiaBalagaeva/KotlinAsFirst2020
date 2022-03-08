@@ -2,7 +2,9 @@
 
 package lesson3.task1
 
-import kotlin.math.roundToInt
+import kotlin.math.PI
+import kotlin.math.abs
+import kotlin.math.pow
 import kotlin.math.sqrt
 
 // Урок 3: циклы
@@ -74,15 +76,14 @@ fun digitCountInNumber(n: Int, m: Int): Int =
  * Использовать операции со строками в этой задаче запрещается.
  */
 fun digitNumber(n: Int): Int {
-    var numOfDigits = 0
-    var number = n
-    do {
-        numOfDigits++
+    var counter = 1
+    var number = abs(n)
+    while (number >= 10) {
+        counter++
         number /= 10
-    } while (number != 0)
-    return numOfDigits
+    }
+    return counter
 }
-
 
 /**
  * Простая (2 балла)
@@ -108,17 +109,10 @@ fun fib(n: Int): Int {
  * Для заданного числа n > 1 найти минимальный делитель, превышающий 1
  */
 fun minDivisor(n: Int): Int {
-    var min = 1
-    if (isPrime(n)) return n
-    else {
-        for (i in 2..Math.sqrt(n.toDouble()).toInt()) {
-            if (n % i == 0) {
-                min = i
-                break
-            }
-        }
-        return min
+    for (i in 2..sqrt(n.toDouble()).toInt()) {
+        if (n % i == 0) return i
     }
+    return n
 }
 
 /**
@@ -279,7 +273,18 @@ fun hasDifferentDigits(n: Int): Boolean {
  * Подумайте, как добиться более быстрой сходимости ряда при больших значениях x.
  * Использовать kotlin.math.sin и другие стандартные реализации функции синуса в этой задаче запрещается.
  */
-fun sin(x: Double, eps: Double): Double = TODO()
+fun sin(x: Double, eps: Double): Double {
+    val localX = x % (2 * PI)
+    var sin = localX
+    var sequenceTerm: Double
+    var n = 1
+    do {
+        sequenceTerm = (-1.0).pow(n) * localX.pow(2 * n + 1) / factorial(2 * n + 1)
+        sin += sequenceTerm
+        n += 1
+    } while (abs(sequenceTerm) > eps)
+    return sin
+}
 
 /**
  * Средняя (4 балла)
@@ -301,25 +306,16 @@ fun cos(x: Double, eps: Double): Double = TODO()
  *
  * Использовать операции со строками в этой задаче запрещается.
  */
-
 fun squareSequenceDigit(n: Int): Int {
-    var square = 1
-    var fullLength = 0
-    var temp = 1
-    var length = 0
-    while (fullLength < n) {
-        square = temp * temp
-        temp++
-        length = digitNumber(square)
-        fullLength += length
+    var sequenceLength = 0
+    var nSquare = 0
+    var nCounter = 1
+    while (sequenceLength < n) {
+        nSquare = nCounter * nCounter
+        nCounter += 1
+        sequenceLength += digitNumber(nSquare)
     }
-
-    while (fullLength > n) {
-        square /= 10
-        fullLength--
-    }
-    return square % 10
-
+    return nSquare / (10.0.pow(sequenceLength - n)).toInt() % 10
 }
 
 /**
@@ -331,22 +327,16 @@ fun squareSequenceDigit(n: Int): Int {
  *
  * Использовать операции со строками в этой задаче запрещается.
  */
-
 fun fibSequenceDigit(n: Int): Int {
-    var fibon = 1
-    var fullLength = 0
-    var temp = 1
-    var length = 0
-    while (fullLength < n) {
-        fibon = fib(temp)
-        temp++
-        length = digitNumber(fibon)
-        fullLength += length
+    var newFib = 1
+    var fibMinus1 = 1
+    var fibMinus2 = 1
+    var sequenceLength = 2
+    while (sequenceLength < n) {
+        newFib = fibMinus1 + fibMinus2
+        fibMinus2 = fibMinus1
+        fibMinus1 = newFib
+        sequenceLength += digitNumber(newFib)
     }
-
-    while (fullLength > n) {
-        fibon /= 10
-        fullLength--
-    }
-    return fibon % 10
+    return if (n > 2) newFib / (10.0.pow(sequenceLength - n)).toInt() % 10 else 1
 }

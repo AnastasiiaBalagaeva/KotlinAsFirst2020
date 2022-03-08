@@ -98,7 +98,7 @@ fun squares(vararg array: Int) = squares(array.toList()).toTypedArray()
  * "А роза упала на лапу Азора" является палиндромом.
  */
 fun isPalindrome(str: String): Boolean {
-    val lowerCase = str.lowercase().filter { it != ' ' }
+    val lowerCase = str.toLowerCase().filter { it != ' ' }
     for (i in 0..lowerCase.length / 2) {
         if (lowerCase[i] != lowerCase[lowerCase.length - i - 1]) return false
     }
@@ -133,16 +133,7 @@ fun abs(v: List<Double>): Double {
  *
  * Рассчитать среднее арифметическое элементов списка list. Вернуть 0.0, если список пуст
  */
-fun mean(list: List<Double>): Double {
-    var k = 0.0
-    if (list.isEmpty())
-        return 0.0
-    else
-        for (element in list) {
-            k++
-        }
-    return list.sum() / k
-}
+fun mean(list: List<Double>): Double = if (list.isEmpty()) 0.0 else list.sum() / list.size
 
 /**
  * Средняя (3 балла)
@@ -153,13 +144,10 @@ fun mean(list: List<Double>): Double {
  * Обратите внимание, что данная функция должна изменять содержание списка list, а не его копии.
  */
 fun center(list: MutableList<Double>): MutableList<Double> {
-    val mid = mean(list)
-    if (list.isEmpty())
-        return list
-    else
-        for ((index, element) in list.withIndex()) {
-            list[index] = element - mid
-        }
+    val mean = if (list.isEmpty()) 0.0 else list.sum() / list.size
+    for (i in 0 until list.size) {
+        list[i] -= mean
+    }
     return list
 }
 
@@ -181,7 +169,6 @@ fun times(a: List<Int>, b: List<Int>): Int = TODO()
  * Значение пустого многочлена равно 0 при любом x.
  */
 fun polynom(p: List<Int>, x: Int): Int = TODO()
-
 
 /**
  * Средняя (3 балла)
@@ -284,64 +271,31 @@ fun decimalFromString(str: String, base: Int): Int = TODO()
  * Например: 23 = XXIII, 44 = XLIV, 100 = C
  */
 fun roman(n: Int): String {
-
-    val romNum = mutableListOf<String>()
-
-    val partM = n / 1000
-    romNum.add("M".repeat(partM))
-    var remainder = n % 1000
-
-    if ((remainder / 500 == 1) && (remainder < 900)) {
-        romNum.add("D")
-        remainder %= 500
+    var n = n
+    val result = mutableListOf<String>()
+    val dictionary = listOf(
+        Pair(1000, "M"),
+        Pair(900, "CM"),
+        Pair(500, "D"),
+        Pair(400, "CD"),
+        Pair(100, "C"),
+        Pair(90, "XC"),
+        Pair(50, "L"),
+        Pair(40, "XL"),
+        Pair(10, "X"),
+        Pair(9, "IX"),
+        Pair(5, "V"),
+        Pair(4, "IV"),
+        Pair(1, "I"),
+    )
+    for ((number, string) in dictionary) {
+        if (number <= n) {
+            result.add(string.repeat(n / number))
+            n %= number
+        }
     }
-    if (remainder / 100 == 4) {
-        romNum.add("CD")
-        remainder %= 400
-    }
-    if (remainder / 100 == 9) {
-        romNum.add("CM")
-        remainder %= 900
-    } else if (remainder > 99) {
-        val partC = remainder % 500 / 100
-        romNum.add("C".repeat(partC))
-    }
-    remainder %= 100
-
-    if ((remainder / 50 == 1) && (remainder < 90)) {
-        romNum.add("L")
-        remainder %= 50
-    }
-    if (remainder / 10 == 4) {
-        romNum.add("XL")
-        remainder %= 40
-    }
-    if (remainder / 10 == 9) {
-        romNum.add("XC")
-        remainder %= 90
-    } else if (remainder > 9) {
-        val partX = remainder % 50 / 10
-        romNum.add("X".repeat(partX))
-    }
-    remainder %= 10
-
-    when (remainder) {
-        9 -> romNum.add("IX")
-        8 -> romNum.add("VIII")
-        7 -> romNum.add("VII")
-        6 -> romNum.add("VI")
-        5 -> romNum.add("V")
-        4 -> romNum.add("IV")
-        3 -> romNum.add("III")
-        2 -> romNum.add("II")
-        1 -> romNum.add("I")
-    }
-
-    val z = romNum.joinToString()
-    val z1 = z.replace(",", "")
-    return z1.replace(" ", "")
+    return result.joinToString(separator = "")
 }
-
 
 /**
  * Очень сложная (7 баллов)
@@ -350,104 +304,64 @@ fun roman(n: Int): String {
  * Например, 375 = "триста семьдесят пять",
  * 23964 = "двадцать три тысячи девятьсот шестьдесят четыре"
  */
+private val DICTIONARY11_19 = listOf(
+    "десять", "одиннадцать", "двенадцать", "тринадцать", "четырнадцать", "пятнадцать",
+    "шестнадцать", "семнадцать", "восемнадцать", "девятнадцать"
+)
+private val DICTIONARY = listOf(
+    listOf("один", "десять", "сто", "одна"),
+    listOf("два", "двадцать", "двести", "две"),
+    listOf("три", "тридцать", "триста", "три"),
+    listOf("четыре", "сорок", "четыреста", "четыре"),
+    listOf("пять", "пятьдесят", "пятьсот", "пять"),
+    listOf("шесть", "шестьдесят", "шестьсот", "шесть"),
+    listOf("семь", "семьдесят", "семьсот", "семь"),
+    listOf("восемь", "восемьдесят", "восемьсот", "восемь"),
+    listOf("девять", "девяносто", "девятьсот", "девять")
+)
+fun threeDigitNumber(n: Int, x1000: Boolean): String {
+    /*Представляет число не более 3х знаков прописью*/
+    var increment = 0
+    if (x1000) {
+        increment = 3
+    }
+    return when {
+        // 0
+        n == 0 -> ""
+        // 1..9
+        n < 10 -> DICTIONARY[n - 1][0 + increment]
+        // 10..100 и проверяем на попадание в 11..19 и 10,20,30,40,50,60,70,80,90
+        n < 100 ->
+            if (n / 10 == 1) DICTIONARY11_19[n % 10] else {
+                if (n % 10 == 0) DICTIONARY[n / 10 - 1][1] else DICTIONARY[n / 10 - 1][1] + ' ' + DICTIONARY[n % 10 - 1][0 + increment]
+            }
+        //100,200,300,400,500,600,700,800,900
+        n % 100 == 0 -> DICTIONARY[n / 100 - 1][2]
+        // Когда ноль посередине (Например 508, 209, 101...)
+        n / 10 % 10 == 0 -> DICTIONARY[n / 100 - 1][2] + ' ' + DICTIONARY[n % 10 - 1][0 + increment]
+        //Когда ноль вконце
+        n % 10 == 0 -> DICTIONARY[n / 100 - 1][2] + ' ' + DICTIONARY[n / 10 % 10 - 1][1]
+        //Числа без нулей
+        else -> if (n / 10 % 10 == 1) DICTIONARY[n / 100 - 1][2] + ' ' + DICTIONARY11_19[n % 10] else
+            DICTIONARY[n / 100 - 1][2] + ' ' + DICTIONARY[n / 10 % 10 - 1][1] + ' ' + DICTIONARY[n % 10 - 1][0 + increment]
+
+    }
+}
+
 fun russian(n: Int): String {
-    val hundreds =
-        listOf("сто", "двести", "триста", "четыреста", "пятьсот", "шестьсот", "семьсот", "восемьсот", "девятьсот")
-    val tens =
-        listOf(
-            "десять",
-            "двадцать",
-            "тридцать",
-            "сорок",
-            "пятьдесят",
-            "шестьдесят",
-            "семьдесят",
-            "восемьдесят",
-            "девяносто"
-        )
-    val numbers =
-        listOf("один", "два", "три", "четыре", "пять", "шесть", "семь", "восемь", "девять")
-    val tensSpecial = listOf(
-        "одиннадцать",
-        "двенадцать",
-        "тринадцать",
-        "четырнадцать",
-        "пятнадцать",
-        "шестнадцать",
-        "семнадцать",
-        "восемнадцать",
-        "девятнадцать"
-    )
-    val numbersSpecial = listOf("одна", "две", "три", "четыре", "пять", "шесть", "семь", "восемь", "девять")
-    val result = mutableListOf<String>()
-
-    if ((n % 100 in 11..19) && (n < 20)) {
-        val desytki2 = n % 10
-        result.add(tensSpecial[desytki2 - 1])
-        return result.joinToString()
-    } else {
-        if (n / 1000 > 0) {
-            var thousandPart = n / 1000
-            if (thousandPart / 100 > 0) {
-                val sotni1 = thousandPart / 100
-                result.add(hundreds[sotni1 - 1])
-                thousandPart %= 100
+    var result = threeDigitNumber(n % 1000, false)
+    val n = n / 1000
+    if (n > 0) {
+        if (n % 100 in 11..19 || n % 100 in 0..100 step 10 || n % 10 in 5..9)
+            result = threeDigitNumber(n, true) + " тысяч " + result
+        else {
+            result = when {
+                n % 10 == 1 -> threeDigitNumber(n, true) + " тысяча " + result
+                else -> threeDigitNumber(n, true) + " тысячи " + result
             }
-
-            if ((thousandPart / 10 > 0) && (thousandPart in 11..19)) {
-                val desytki1 = thousandPart % 10
-                result.add(tensSpecial[desytki1 - 1])
-                thousandPart = 0
-            } else if (thousandPart / 10 > 0) {
-                val desytki1 = thousandPart / 10
-                result.add(tens[desytki1 - 1])
-                thousandPart %= 10
-            }
-
-            if (thousandPart > 0) {
-                result.add(numbersSpecial[thousandPart - 1])
-            }
-
-            val z = n / 1000
-            val thousand = when {
-                z % 100 in 11..19 -> "тысяч"
-                (z % 10 == 1) -> "тысяча"
-                ((z % 100 / 10 != 1) && (z % 10 == 2 || z % 10 == 3 || z % 10 == 4)) -> "тысячи"
-                else -> "тысяч"
-            }
-            result.add(thousand)
         }
     }
 
-    var remainder = n
-    if (n / 1000 > 0) {
-        remainder = n % 1000
-    }
-
-    if (remainder / 100 > 0) {
-        val sotni = remainder / 100
-        result.add(hundreds[sotni - 1])
-        remainder = n % 100
-    }
-
-    if ((remainder / 10 > 0) && (remainder in 11..19)) {
-        val desytki1 = remainder % 10
-        result.add(tensSpecial[desytki1 - 1])
-        remainder = 0
-    } else if (remainder / 10 > 0) {
-        val desytki1 = remainder / 10
-        result.add(tens[desytki1 - 1])
-        remainder %= 10
-    }
-
-    if (remainder > 0) {
-        result.add(numbers[remainder - 1])
-    }
-
-    val final = result.joinToString()
-    return final.replace(",", "")
+    return if (result.takeLast(1) == " ") result.dropLast(1) else result
+    //удаляем пробел для случаев когда после слова тысяча ничего не идёт
 }
-
-
-
-
